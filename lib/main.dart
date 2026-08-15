@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'screens/auth/splash_screen.dart';
+import 'services/ad_service.dart';
+import 'screens/test_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Pre-initialize Unity Ads
+  AdService().initialize();
   runApp(const UniversalTemplateApp());
 }
 
@@ -18,7 +21,7 @@ class UniversalTemplateApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+      home: const TestScreen(),
     );
   }
 }
