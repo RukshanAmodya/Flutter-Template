@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,10 +16,23 @@ class AdService {
   AdService._internal();
 
   // --- Constants & Config ---
-  static const String _gameId = '6089450';
-  static const String interstitialId = 'Interstitial_Android';
-  static const String rewardedId = 'Rewarded_Android';
-  static const String bannerId = 'Banner_Android';
+  // Production credentials (Unity Dashboard)
+  static const String _prodGameId = '6089450';
+  static const String _prodInterstitialId = 'Interstitial_Android';
+  static const String _prodRewardedId = 'Rewarded_Android';
+  static const String _prodBannerId = 'Banner_Android';
+
+  // Unity official test credentials — always fills ads in debug builds
+  static const String _testGameId = '4374806';
+  static const String _testInterstitialId = 'Interstitial_Android';
+  static const String _testRewardedId = 'Rewarded_Android';
+  static const String _testBannerId = 'Banner_Android';
+
+  // Active credentials (switches based on build mode)
+  static String get _gameId => kDebugMode ? _testGameId : _prodGameId;
+  static String get interstitialId => kDebugMode ? _testInterstitialId : _prodInterstitialId;
+  static String get rewardedId => kDebugMode ? _testRewardedId : _prodRewardedId;
+  static String get bannerId => kDebugMode ? _testBannerId : _prodBannerId;
 
   // --- State ---
   bool _isInitialized = false;
@@ -41,7 +55,7 @@ class AdService {
   bool get isPremiumUser => _isPremiumUser;
 
   /// Initialize Unity Ads SDK (Call in main.dart or splash_screen.dart)
-  Future<void> initialize({bool testMode = false}) async {
+  Future<void> initialize({bool testMode = kDebugMode}) async {
     if (_isInitialized) return;
 
     debugPrint('[AdService] 🚀 Starting initialization...');
