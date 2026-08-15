@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/ad_service.dart';
 
 /// Reusable Unity Banner Ad Widget that can be placed on any screen layout.
-class UnityBannerAdWidget extends StatelessWidget {
+/// Automatically waits for AdService initialization before rendering the ad.
+class UnityBannerAdWidget extends StatefulWidget {
   final double height;
   final bool isInline;
 
@@ -13,14 +15,58 @@ class UnityBannerAdWidget extends StatelessWidget {
   });
 
   @override
+  State<UnityBannerAdWidget> createState() => _UnityBannerAdWidgetState();
+}
+
+class _UnityBannerAdWidgetState extends State<UnityBannerAdWidget> {
+  Timer? _initTimer;
+  bool _isReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkInitialization();
+  }
+
+  void _checkInitialization() {
+    if (AdService().isInitialized) {
+      _isReady = true;
+      return;
+    }
+
+    // Poll every 500ms until AdService is initialized
+    _initTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (AdService().isInitialized) {
+        timer.cancel();
+        setState(() {
+          _isReady = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _initTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final adService = AdService();
 
-    if (adService.isPremiumUser) {
-      return const SizedBox.shrink();
-    }
+    // Premium user — show nothing
+    if (adService.isPremiumUser) return const SizedBox.shrink();
 
-    if (isInline) {
+    // Not ready yet — show nothing (no container, no text)
+    if (!_isReady) return const SizedBox.shrink();
+
+    // Ready — show the actual ad
+    if (widget.isInline) {
       return Container(
         margin: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
@@ -35,7 +81,7 @@ class UnityBannerAdWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              adService.getBannerWidget(height: height),
+              adService.getBannerWidget(height: widget.height),
               const Padding(
                 padding: EdgeInsets.only(bottom: 4),
                 child: Text(
@@ -53,6 +99,6 @@ class UnityBannerAdWidget extends StatelessWidget {
       );
     }
 
-    return adService.getBannerWidget(height: height);
+    return adService.getBannerWidget(height: widget.height);
   }
 }
