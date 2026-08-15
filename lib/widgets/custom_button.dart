@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
 
+/// A reusable, animated custom button supporting primary, secondary, and loading states.
 class CustomButton extends StatefulWidget {
   final String text;
-  final VoidCallback? onTap;
+  final VoidCallback? onPressed;
   final bool isLoading;
-  final double? width;
+  final bool isOutlined;
+  final IconData? icon;
+  final Color? backgroundColor;
+  final Color? textColor;
   final double height;
-  final Color? color;
-  final Color textColor;
   final double borderRadius;
-  final Gradient? gradient;
 
   const CustomButton({
     super.key,
     required this.text,
-    this.onTap,
+    required this.onPressed,
     this.isLoading = false,
-    this.width,
-    this.height = 56,
-    this.color,
-    this.textColor = Colors.white,
-    this.borderRadius = 14,
-    this.gradient,
+    this.isOutlined = false,
+    this.icon,
+    this.backgroundColor,
+    this.textColor,
+    this.height = 50.0,
+    this.borderRadius = 12.0,
   });
 
   @override
@@ -30,7 +31,6 @@ class CustomButton extends StatefulWidget {
 
 class _CustomButtonState extends State<CustomButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -38,10 +38,11 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+      lowerBound: 0.0,
+      upperBound: 0.04,
+    )..addListener(() {
+        setState(() {});
+      });
   }
 
   @override
@@ -50,65 +51,98 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
     super.dispose();
   }
 
-  void _handleTap() async {
-    if (widget.onTap == null || widget.isLoading) return;
-    
-    await _controller.forward();
-    await _controller.reverse();
-    widget.onTap?.call();
+  void _onTapDown(TapDownDetails details) {
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.forward();
+    }
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.reverse();
+    }
+  }
+
+  void _onTapCancel() {
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.reverse();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final buttonColor = widget.color ?? theme.colorScheme.primary;
-    final isButtonDisabled = widget.onTap == null || widget.isLoading;
+    final scale = 1 - _controller.value;
 
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      child: Opacity(
-        opacity: isButtonDisabled ? 0.6 : 1.0,
+    final effectiveBgColor = widget.backgroundColor ??
+        (widget.isOutlined ? Colors.transparent : theme.colorScheme.primary);
+    final effectiveTextColor = widget.textColor ??
+        (widget.isOutlined ? theme.colorScheme.primary : theme.colorScheme.onPrimary);
+
+    return Transform.scale(
+      scale: scale,
+      child: GestureDetector(
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        onTap: widget.isLoading ? null : widget.onPressed,
         child: Container(
-          width: widget.width ?? double.infinity,
           height: widget.height,
           decoration: BoxDecoration(
+            color: widget.onPressed == null
+                ? theme.disabledColor
+                : effectiveBgColor,
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            gradient: widget.gradient,
-            color: widget.gradient == null ? buttonColor : null,
-            boxShadow: [
-              BoxShadow(
-                color: (widget.gradient?.colors.first ?? buttonColor).withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            border: widget.isOutlined
+                ? Border.all(
+                    color: widget.onPressed == null
+                        ? theme.disabledColor
+                        : (widget.backgroundColor ?? theme.colorScheme.primary),
+                    width: 1.5,
+                  )
+                : null,
+            boxShadow: (!widget.isOutlined && widget.onPressed != null)
+                ? [
+                    BoxShadow(
+                      color: effectiveBgColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: isButtonDisabled ? null : _handleTap,
-              borderRadius: BorderRadius.circular(widget.borderRadius),
-              child: Center(
-                child: widget.isLoading
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: widget.textColor,
-                          strokeWidth: 2.5,
+          child: Center(
+            child: widget.isLoading
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(
+                          widget.icon,
+                          color: effectiveTextColor,
+                          size: 20,
                         ),
-                      )
-                    : Text(
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
                         widget.text,
                         style: TextStyle(
-                          color: widget.textColor,
+                          color: effectiveTextColor,
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-              ),
-            ),
+                    ],
+                  ),
           ),
         ),
       ),

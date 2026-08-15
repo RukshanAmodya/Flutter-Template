@@ -1,49 +1,23 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'screens/splash_screen.dart';
-import 'services/storage_service.dart';
+import 'screens/auth/splash_screen.dart';
 
-void main() async {
-  // Ensure Flutter framework binding is initialized
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Pre-initialize StorageService
-  await StorageService.getInstance();
-  
-  runApp(const MyApp());
+  runApp(const UniversalTemplateApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCurrentTheme();
-  }
-
-  void _loadCurrentTheme() async {
-    final storage = await StorageService.getInstance();
-    setState(() {
-      _themeMode = storage.isDarkMode ? ThemeMode.dark : ThemeMode.light;
-    });
-  }
+class UniversalTemplateApp extends StatelessWidget {
+  const UniversalTemplateApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Template Boilerplate',
+      title: 'Universal Flutter Template',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: _themeMode,
+      themeMode: ThemeMode.system,
       home: const SplashScreen(),
     );
   }

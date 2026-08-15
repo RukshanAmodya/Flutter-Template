@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
 
+/// A reusable custom textfield widget supporting prefix icons, password toggling, and validation.
 class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
-  final String labelText;
+  final String? labelText;
   final String? hintText;
   final IconData? prefixIcon;
   final bool isPassword;
   final TextInputType keyboardType;
-  final FormFieldValidator<String>? validator;
-  final TextInputAction textInputAction;
-  final ValueChanged<String>? onFieldSubmitted;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  final bool readOnly;
+  final int maxLines;
 
   const CustomTextField({
     super.key,
     this.controller,
-    required this.labelText,
+    this.labelText,
     this.hintText,
     this.prefixIcon,
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.validator,
-    this.textInputAction = TextInputAction.next,
-    this.onFieldSubmitted,
+    this.onChanged,
+    this.readOnly = false,
+    this.maxLines = 1,
   });
 
   @override
@@ -29,7 +32,7 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  bool _obscureText = true;
+  late bool _obscureText;
 
   @override
   void initState() {
@@ -39,13 +42,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return TextFormField(
       controller: widget.controller,
-      obscureText: _obscureText,
+      obscureText: widget.isPassword ? _obscureText : false,
       keyboardType: widget.keyboardType,
-      textInputAction: widget.textInputAction,
-      onFieldSubmitted: widget.onFieldSubmitted,
       validator: widget.validator,
+      onChanged: widget.onChanged,
+      readOnly: widget.readOnly,
+      maxLines: widget.isPassword ? 1 : widget.maxLines,
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
@@ -53,7 +59,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon: Icon(
-                  _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
                 ),
                 onPressed: () {
                   setState(() {
@@ -62,6 +68,32 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 },
               )
             : null,
+        filled: true,
+        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.2),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: theme.colorScheme.error,
+          ),
+        ),
       ),
     );
   }
