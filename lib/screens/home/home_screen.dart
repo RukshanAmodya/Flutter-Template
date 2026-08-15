@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utility/search_screen.dart';
 import '../feed/detail_screen.dart';
+import '../support/support_screen.dart';
 import '../../widgets/unity_ads/unity_banner_ad_widget.dart';
-import '../../widgets/unity_ads/unity_interstitial_ad_button.dart';
-import '../../widgets/unity_ads/unity_rewarded_ad_button.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -14,7 +13,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Home'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded),
@@ -58,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Welcome, Rukshan 👋',
+                          'Welcome back! 👋',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -67,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Template Dashboard Overview',
+                          'Here\'s what\'s happening today',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 13,
@@ -80,7 +79,8 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            // Quick Shortcuts
+
+            // Quick Actions
             const Text(
               'Quick Actions',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -115,34 +115,22 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.support_agent_rounded,
                   label: 'Support',
                   color: Colors.teal,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SupportScreen()),
+                    );
+                  },
                 ),
               ],
             ),
             const SizedBox(height: 28),
-            // Unity Ads Section
-            const Text(
-              'Unity Ads Components',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            const UnityBannerAdWidget(isInline: true),
-            const SizedBox(height: 12),
-            UnityInterstitialAdButton(
-              text: 'Show Interstitial Ad 🎬',
-              onAction: () {},
-            ),
-            const SizedBox(height: 12),
-            UnityRewardedAdButton(
-              onRewardEarned: () {},
-            ),
-            const SizedBox(height: 28),
+
             // Featured Items Horizontal Carousel
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Featured Items',
+                  'Featured',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextButton(
@@ -159,25 +147,33 @@ class HomeScreen extends StatelessWidget {
                 itemCount: 4,
                 separatorBuilder: (context, index) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
+                  final colors = [Colors.blue, Colors.purple, Colors.teal, Colors.orange];
+                  final icons = [
+                    Icons.star_rounded,
+                    Icons.trending_up_rounded,
+                    Icons.local_fire_department_rounded,
+                    Icons.new_releases_rounded,
+                  ];
+                  final labels = ['Top Pick', 'Trending', 'Hot', 'New'];
                   return InkWell(
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => DetailScreen(
-                            title: 'Featured Template Project #${index + 1}',
-                            category: 'Mobile Application Base',
+                            title: '${labels[index]} Item #${index + 1}',
+                            category: 'Featured Collection',
                           ),
                         ),
                       );
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      width: 220,
+                      width: 180,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        color: colors[index].withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+                        border: Border.all(color: colors[index].withValues(alpha: 0.25)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,30 +181,34 @@ class HomeScreen extends StatelessWidget {
                           Container(
                             height: 60,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                              color: colors[index].withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.developer_mode_rounded,
-                                color: theme.colorScheme.primary,
+                                icons[index],
+                                color: colors[index],
                                 size: 36,
                               ),
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Featured Card #${index + 1}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            '${labels[index]} Item',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: colors[index],
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Click to view item details page.',
+                            'Tap to view details →',
                             style: TextStyle(
                               fontSize: 12,
-                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -218,6 +218,61 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
+            const SizedBox(height: 24),
+
+            // Banner Ad
+            const UnityBannerAdWidget(isInline: true),
+            const SizedBox(height: 16),
+
+            // Recent Activity Section
+            const Text(
+              'Recent Activity',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            ...List.generate(3, (index) {
+              final items = [
+                ('You viewed a new item', Icons.visibility_rounded, Colors.blue),
+                ('Profile updated successfully', Icons.check_circle_rounded, Colors.green),
+                ('New notification received', Icons.notifications_rounded, Colors.orange),
+              ];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: items[index].$3.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(items[index].$2, color: items[index].$3, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        items[index].$1,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Text(
+                      '${index + 1}h ago',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 20),
           ],
         ),
       ),
